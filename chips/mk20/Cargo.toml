@@ -1,0 +1,20 @@
+[package]
+name = "mk20"
+version = "0.1.0"
+authors = ["Vince van Oosten<techhazard@codeforyouand.me>"]
+
+[profile.dev]
+panic = "abort"
+lto = true
+opt-level = 0
+debug = true
+
+[profile.release]
+panic = "abort"
+lto = true
+
+[dependencies]
+kernel = { path = "../../tock/kernel" }
+cortexm4 = { path = "../../tock/arch/cortex-m4" }
+capsules = { path = "../../tock/capsules" }
+common = { path = "../../common" }
