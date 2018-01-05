@@ -1,7 +1,7 @@
 # TockOS port for Teensy 3.6
 
 This repository is an experimental port of the Tock embedded operating system to
-the Teensy 3.6.
+the Teensy 3.2.
 
 ## Installation
 
