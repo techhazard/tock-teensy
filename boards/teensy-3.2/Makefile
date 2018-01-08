@@ -1,6 +1,6 @@
 # Teensy 3.6
 CHIP = mk20
-MCU=mk20fx1m0
+MCU=mk20dx256
 
 PLATFORM=teensy
 
