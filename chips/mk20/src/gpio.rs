@@ -27,10 +27,30 @@ pub struct PortRegisters {
     dfwr: ReadWrite<u32>,
 }
 
+/// Look at the source for more documentation
+/// would not compile with internal doc comments
 bitfields! [ u32,
     PCR PinControl [
-        ISF 24 [],
-        IRQC (16, Mask(0b1111)) [
+
+        // 31-25: reserved, read only, always value 0
+        // Interrupt Status Flag
+        // The pin interrupt configuration is valid in all digital pin muxing modes.
+        //
+        // When it in enabled:
+        //     If the pin is configured to generate a DMA request, then the
+        //	    corresponding flag will be cleared automatically at the completion of the requested DMA transfer.
+        //     Otherwise, the flag remains set until a logic one is written to the flag. If the pin is configured for a level
+        //     sensitive interrupt and the pin remains asserted, then the flag is set again immediately after it is cleared.
+        InterruptStatusFlag 24 [
+            // Configured interrupt is not detected.
+            Unactive = 0,
+            Active = 1
+        ],
+        // 23-20: reserved, read only, always value 0
+        // Interrupt Configuration
+        // The pin interrupt configuration is valid in all digital pin muxing modes. The corresponding pin is configured
+        // to generate interrupt/DMA request as follows:
+        IRQConfiguration (16, Mask(0b1111)) [
             InterruptDisabled = 0,
             DmaRisingEdge = 1,
             DmaFallingEdge = 2,
@@ -40,15 +60,77 @@ bitfields! [ u32,
             InterruptFallingEdge = 10,
             InterruptEitherEdge = 11,
             InterruptLogicHigh = 12
+            // other values are reserved
         ],
-        LK 15 [],
-        MUX (8, Mask(0b111)) [],
-        DSE 6 [],
-        ODE 5 [],
-        PFE 4 [],
-        SRE 2 [],
-        PE 1 [],
-        PS 0 [
+        // Lock the Pin Control Register fields ([15:0]) until next system reset
+        LockRegister 15 [
+            Unlocked = 0,
+            Locked = 1
+        ],
+        // 14-11: reserved, read only, always value 0
+        // Not all pins support all pin muxing slots. Unimplemented pin muxing slots are reserved
+        // and may result in configuring the pin for a different pin muxing slot.
+        PinMuxControl (8, Mask(0b111)) [
+            // pin disabled / analog
+            PinDisabled = 0,
+            // GPIO
+            Alternative1 = 1,
+            // chip specific
+            Alternative2 = 2,
+            // chip specific
+            Alternative3 = 3,
+            // chip specific
+            Alternative4 = 4,
+            // chip specific
+            Alternative5 = 5,
+            // chip specific
+            Alternative6 = 6,
+            // chip specific
+            Alternative7 = 7
+        ],
+        // 7: reserved, read only, always value 0
+        // This bit is read only for pins that do not support a configurable drive strength.
+        // Drive strength configuration is valid in all digital pin muxing modes.
+        // digital pins only
+        DriveStrengthEnable 6 [
+            Low = 0,
+            High = 1
+        ],
+        // This bit is read only for pins that do not support a configurable open drain output.
+        // Open drain configuration is valid in all digital pin muxing modes.
+        // digital pins only
+        OpenDrainEnable 5 [
+            Disabled = 0,
+            Enabled = 1
+        ],
+        // Disable the passive input filter when high speed interfaces of more than 2 MHz are supported on the pin.
+        // digital pins only
+        PassiveFilterEnable 4 [
+            Disabled = 0,
+            // A low pass filter of 10 MHz to 30 MHz bandwidth is enabled on the digital input path
+            Enabled = 1
+
+        ],
+        // 3: reserved, read only, always value 0
+        // This bit is read only for pins that do not support a configurable slew rate.
+        // Slew rate configuration is valid in all digital pin muxing modes.
+        // digital pins only
+        SlewRateEnable 2 [
+            Fast = 0,
+            Slow = 1
+        ],
+        // This bit is read only for pins that do not support a configurable pull resistor.
+        // Pull configuration is valid in all digital pin muxing modes.
+        // `Enabled` only has effect on digital pins
+        PullEnable 1 [
+            Disabled = 0,
+            Enabled = 1
+        ],
+        // This bit is read only for pins that do not support a configurable pull resistor direction.
+        // Pull configuration is valid in all digital pin muxing modes.
+        // `PullEnable` needs to be enabled to take effect
+        // digital pins only
+        PullSelect 0 [
             PullDown = 0,
             PullUp = 1
         ]
@@ -215,7 +297,7 @@ impl<'a, P: PinNum> Pin<'a, P> {
     fn set_peripheral_function(&self, function: PeripheralFunction) {
         let port = self.gpio.port.regs();
 
-        port.pcr[self.gpio.index()].modify(PCR::MUX.val(function as u32));
+        port.pcr[self.gpio.index()].modify(PCR::PinMuxControl.val(function as u32));
     }
 
     pub fn release_claim(&self) {
@@ -261,9 +343,9 @@ impl<'a> Gpio<'a> {
 
     pub fn set_input_mode(&self, mode: hil::gpio::InputMode) {
         let config = match mode {
-            hil::gpio::InputMode::PullUp => PCR::PE::SET + PCR::PS::PullUp,
-            hil::gpio::InputMode::PullDown => PCR::PE::SET + PCR::PS::PullDown,
-            hil::gpio::InputMode::PullNone => PCR::PE::CLEAR,
+            hil::gpio::InputMode::PullUp => PCR::PullEnable::SET + PCR::PullSelect::PullUp,
+            hil::gpio::InputMode::PullDown => PCR::PullEnable::SET + PCR::PullSelect::PullDown,
+            hil::gpio::InputMode::PullNone => PCR::PullEnable::CLEAR,
         };
 
         self.port.regs().pcr[self.index()].modify(config);
@@ -271,16 +353,16 @@ impl<'a> Gpio<'a> {
 
     pub fn set_interrupt_mode(&self, mode: hil::gpio::InterruptMode) {
         let config = match mode {
-            hil::gpio::InterruptMode::RisingEdge => PCR::IRQC::InterruptRisingEdge,
-            hil::gpio::InterruptMode::FallingEdge => PCR::IRQC::InterruptFallingEdge,
-            hil::gpio::InterruptMode::EitherEdge => PCR::IRQC::InterruptEitherEdge
+            hil::gpio::InterruptMode::RisingEdge => PCR::IRQConfiguration::InterruptRisingEdge,
+            hil::gpio::InterruptMode::FallingEdge => PCR::IRQConfiguration::InterruptFallingEdge,
+            hil::gpio::InterruptMode::EitherEdge => PCR::IRQConfiguration::InterruptEitherEdge
         };
 
         self.port.regs().pcr[self.index()].modify(config);
     }
 
     fn clear_interrupt_status_flag(&self) {
-        self.port.regs().pcr[self.index()].modify(PCR::ISF::SET);
+        self.port.regs().pcr[self.index()].modify(PCR::InterruptStatusFlag::SET);
     }
 
     fn enable_interrupt(&self) {
@@ -297,7 +379,7 @@ impl<'a> Gpio<'a> {
 
     fn disable_interrupt(&self) {
         self.clear_interrupt_status_flag();
-        self.port.regs().pcr[self.index()].modify(PCR::IRQC::InterruptDisabled);
+        self.port.regs().pcr[self.index()].modify(PCR::IRQConfiguration::InterruptDisabled);
     }
 
     pub fn clear_client(&self) {
