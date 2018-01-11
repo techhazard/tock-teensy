@@ -33,23 +33,23 @@ bitfields! [ u32,
     PCR PinControl [
 
         // 31-25: reserved, read only, always value 0
-        // Interrupt Status Flag
-        // The pin interrupt configuration is valid in all digital pin muxing modes.
-        //
-        // When it in enabled:
-        //     If the pin is configured to generate a DMA request, then the
-        //	    corresponding flag will be cleared automatically at the completion of the requested DMA transfer.
-        //     Otherwise, the flag remains set until a logic one is written to the flag. If the pin is configured for a level
-        //     sensitive interrupt and the pin remains asserted, then the flag is set again immediately after it is cleared.
+        /// Interrupt Status Flag
+        /// The pin interrupt configuration is valid in all digital pin muxing modes.
+        ///
+        /// When it in enabled:
+        ///     If the pin is configured to generate a DMA request, then the
+        ///	    corresponding flag will be cleared automatically at the completion of the requested DMA transfer.
+        ///     Otherwise, the flag remains set until a logic one is written to the flag. If the pin is configured for a level
+        ///     sensitive interrupt and the pin remains asserted, then the flag is set again immediately after it is cleared.
         InterruptStatusFlag 24 [
             // Configured interrupt is not detected.
             Unactive = 0,
             Active = 1
         ],
         // 23-20: reserved, read only, always value 0
-        // Interrupt Configuration
-        // The pin interrupt configuration is valid in all digital pin muxing modes. The corresponding pin is configured
-        // to generate interrupt/DMA request as follows:
+        /// Interrupt Configuration
+        /// The pin interrupt configuration is valid in all digital pin muxing modes. The corresponding pin is configured
+        /// to generate interrupt/DMA request as follows:
         IRQConfiguration (16, Mask(0b1111)) [
             InterruptDisabled = 0,
             DmaRisingEdge = 1,
@@ -62,14 +62,14 @@ bitfields! [ u32,
             InterruptLogicHigh = 12
             // other values are reserved
         ],
-        // Lock the Pin Control Register fields ([15:0]) until next system reset
+        /// Lock the Pin Control Register fields ([15:0]) until next system reset
         LockRegister 15 [
             Unlocked = 0,
             Locked = 1
         ],
         // 14-11: reserved, read only, always value 0
-        // Not all pins support all pin muxing slots. Unimplemented pin muxing slots are reserved
-        // and may result in configuring the pin for a different pin muxing slot.
+        /// Not all pins support all pin muxing slots. Unimplemented pin muxing slots are reserved
+        /// and may result in configuring the pin for a different pin muxing slot.
         PinMuxControl (8, Mask(0b111)) [
             // pin disabled / analog
             PinDisabled = 0,
@@ -89,22 +89,22 @@ bitfields! [ u32,
             Alternative7 = 7
         ],
         // 7: reserved, read only, always value 0
-        // This bit is read only for pins that do not support a configurable drive strength.
-        // Drive strength configuration is valid in all digital pin muxing modes.
-        // digital pins only
+        /// This bit is read only for pins that do not support a configurable drive strength.
+        /// Drive strength configuration is valid in all digital pin muxing modes.
+        /// digital pins only
         DriveStrengthEnable 6 [
             Low = 0,
             High = 1
         ],
-        // This bit is read only for pins that do not support a configurable open drain output.
-        // Open drain configuration is valid in all digital pin muxing modes.
-        // digital pins only
+        /// This bit is read only for pins that do not support a configurable open drain output.
+        /// Open drain configuration is valid in all digital pin muxing modes.
+        /// digital pins only
         OpenDrainEnable 5 [
             Disabled = 0,
             Enabled = 1
         ],
-        // Disable the passive input filter when high speed interfaces of more than 2 MHz are supported on the pin.
-        // digital pins only
+        /// Disable the passive input filter when high speed interfaces of more than 2 MHz are supported on the pin.
+        /// digital pins only
         PassiveFilterEnable 4 [
             Disabled = 0,
             // A low pass filter of 10 MHz to 30 MHz bandwidth is enabled on the digital input path
@@ -112,24 +112,24 @@ bitfields! [ u32,
 
         ],
         // 3: reserved, read only, always value 0
-        // This bit is read only for pins that do not support a configurable slew rate.
-        // Slew rate configuration is valid in all digital pin muxing modes.
-        // digital pins only
+        /// This bit is read only for pins that do not support a configurable slew rate.
+        /// Slew rate configuration is valid in all digital pin muxing modes.
+        /// digital pins only
         SlewRateEnable 2 [
             Fast = 0,
             Slow = 1
         ],
-        // This bit is read only for pins that do not support a configurable pull resistor.
-        // Pull configuration is valid in all digital pin muxing modes.
-        // `Enabled` only has effect on digital pins
+        /// This bit is read only for pins that do not support a configurable pull resistor.
+        /// Pull configuration is valid in all digital pin muxing modes.
+        /// `Enabled` only has effect on digital pins
         PullEnable 1 [
             Disabled = 0,
             Enabled = 1
         ],
-        // This bit is read only for pins that do not support a configurable pull resistor direction.
-        // Pull configuration is valid in all digital pin muxing modes.
-        // `PullEnable` needs to be enabled to take effect
-        // digital pins only
+        /// This bit is read only for pins that do not support a configurable pull resistor direction.
+        /// Pull configuration is valid in all digital pin muxing modes.
+        /// `PullEnable` needs to be enabled to take effect
+        /// digital pins only
         PullSelect 0 [
             PullDown = 0,
             PullUp = 1
@@ -137,8 +137,8 @@ bitfields! [ u32,
     ]
 ];
 
-// Register map for a single GPIO port--aliased to bitband region
-// [^1]: Section 63.3.1
+/// Register map for a single GPIO port--aliased to bitband region
+/// [^1]: Section 63.3.1
 #[repr(C, packed)]
 pub struct GpioBitbandRegisters {
     output: [ReadWrite<u32>; 32],
