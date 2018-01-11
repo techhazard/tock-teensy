@@ -71,21 +71,21 @@ bitfields! [ u32,
         /// Not all pins support all pin muxing slots. Unimplemented pin muxing slots are reserved
         /// and may result in configuring the pin for a different pin muxing slot.
         PinMuxControl (8, Mask(0b111)) [
-            // pin disabled / analog
+            /// pin disabled / analog
             PinDisabled = 0,
-            // GPIO
+            /// GPIO
             Alternative1 = 1,
-            // chip specific
+            /// chip specific
             Alternative2 = 2,
-            // chip specific
+            /// chip specific
             Alternative3 = 3,
-            // chip specific
+            /// chip specific
             Alternative4 = 4,
-            // chip specific
+            /// chip specific
             Alternative5 = 5,
-            // chip specific
+            /// chip specific
             Alternative6 = 6,
-            // chip specific
+            /// chip specific
             Alternative7 = 7
         ],
         // 7: reserved, read only, always value 0
@@ -107,7 +107,7 @@ bitfields! [ u32,
         /// digital pins only
         PassiveFilterEnable 4 [
             Disabled = 0,
-            // A low pass filter of 10 MHz to 30 MHz bandwidth is enabled on the digital input path
+            /// A low pass filter of 10 MHz to 30 MHz bandwidth is enabled on the digital input path
             Enabled = 1
 
         ],
